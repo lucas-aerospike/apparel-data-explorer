@@ -1,16 +1,27 @@
-# This is a sample Python script.
+import aerospike
 
-# Press ⌃R to execute it or replace it with your code.
-# Press Double ⇧ to search everywhere for classes, files, tool windows, actions, and settings.
+def main( ):
+    print("Connecting to Aerospike server...")
 
+    cluster_addrs = {
+        "hosts": [("localhost", 3000)]
+    }
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press ⌘F8 to toggle the breakpoint.
+    client = aerospike.Client(cluster_addrs).connect( )
 
+    print("Connected to Aerospike server.")
 
-# Press the green button in the gutter to run the script.
+    key = ("inventory", "catalog", 4768)
+    (outkey, meta, bins) = client.get(key)
+    print("Found outkey:", outkey)
+    print("Found meta:", meta)
+    print("Found bins:", bins)
+
+    client.close( )
+
+#
+# Boilerplate driver if this is the script invoked by the user
+#
 if __name__ == '__main__':
-    print_hi('PyCharm')
+    main( )
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/

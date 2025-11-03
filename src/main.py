@@ -1,8 +1,9 @@
-import aerospike
+import json
+from aerospike import Client
 from aerospike import predicates as pred
-
 from src.SetProxy import SetProxy
-
+from src.OpenAIGateway import recommend
+from pprint import pprint
 
 def clean_and_aggregate(accum_list, callback_record):
     record_body = callback_record[2]
@@ -15,24 +16,25 @@ def main( ):
     cluster_addrs = {
         "hosts": [("localhost", 3000)]
     }
-    client = aerospike.Client(cluster_addrs).connect( )
-    print("Connected to Aerospike server")
+    client = Client(cluster_addrs).connect( )
+    print("Connected to Aerospike server.")
 
     proxy = SetProxy(client, "inventory", "catalog")
 
     cleaned_results = [ ]
     (
-        proxy.query()
+        proxy.query( )
         .where(pred.equals("category", "dress"))
         .select("itemId", "subcategory", "decade", "pattern", "color",
                 "size", "material")
         .foreach(lambda curr_record: clean_and_aggregate(
             cleaned_results, curr_record))
     )
-
-    print(cleaned_results)
-
     client.close( )
+
+    response = recommend(2228, cleaned_results)
+
+    pprint(response)
 
 
 #

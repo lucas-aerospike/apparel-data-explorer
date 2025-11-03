@@ -3,6 +3,21 @@ import time
 from openai import OpenAI
 
 
+SYSTEM = """You are a vintage fashion recommender for women's dresses.
+    Task: pick the THREE closest matches in 'inventory' to the 'exemplar'.
+    Judging criteria (in order):
+    1) Silhouette/subcategory affinity (minidress ~ bodycon/shift > mumu/trapeze).
+    2) Era proximity (1980s closest to late-70s/early-90s).
+    3) Pattern match (solid vs plaid/striped/floral).
+    4) Color family (exact or near jewel-tone match gets a bonus).
+    5) Fabric/handfeel (smooth/stretchy cotton-blend ~ satin/poly jerseys > wool/flannel).
+    6) Size tolerance: vintage can be tailored; +/-1–2 numeric or adjacent tee sizes are acceptable.
+    Return STRICT JSON only with keys:
+    - top3: array of 3 objects [{itemId, score (0..1), why}]
+    - notes: one short paragraph explaining the trade-offs.
+    """
+
+
 def recommend(exemplar_id, catalog):
     client = OpenAI(
         api_key="")
@@ -17,20 +32,6 @@ def recommend(exemplar_id, catalog):
         raise ValueError(f"Exemplar with itemId={exemplar_id} not found")
 
     inventory = [i for i in catalog if i["itemId"] != exemplar_id]
-
-    SYSTEM = """You are a vintage fashion recommender for women's dresses.
-        Task: pick the THREE closest matches in 'inventory' to the 'exemplar'.
-        Judging criteria (in order):
-        1) Silhouette/subcategory affinity (minidress ~ bodycon/shift > mumu/trapeze).
-        2) Era proximity (1980s closest to late-70s/early-90s).
-        3) Pattern match (solid vs plaid/striped/floral).
-        4) Color family (exact or near jewel-tone match gets a bonus).
-        5) Fabric/handfeel (smooth/stretchy cotton-blend ~ satin/poly jerseys > wool/flannel).
-        6) Size tolerance: vintage can be tailored; +/-1–2 numeric or adjacent tee sizes are acceptable.
-        Return STRICT JSON only with keys:
-        - top3: array of 3 objects [{itemId, score (0..1), why}]
-        - notes: one short paragraph explaining the trade-offs.
-        """
 
     USER = {"exemplar": exemplar, "inventory": inventory}
 

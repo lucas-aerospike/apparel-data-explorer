@@ -3,6 +3,8 @@
 import sys
 from aerospike import Client
 from aerospike import predicates as pred
+
+import open_ai_gateway
 from set_proxy import SetProxy
 from open_ai_gateway import recommend
 from pprint import pprint
@@ -23,7 +25,7 @@ def main( ):
         "hosts": [("localhost", 3000)]
     }
     client = Client(cluster_addrs).connect( )
-    print("Connected to Aerospike server.")
+    print(f"Connected to Aerospike server: = {client.get_nodes( )}")
 
     proxy = SetProxy(client, "inventory", "catalog")
 
@@ -38,8 +40,12 @@ def main( ):
     )
     client.close( )
 
+    print("\nConfiguring OpenAI roles...")
+    print(f"System role = {open_ai_gateway.SYSTEM}")
+
     response = recommend(int(sys.argv[1]), cleaned_results)
 
+    print("\n")
     pprint(response)
 
 

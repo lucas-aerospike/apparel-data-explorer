@@ -4,9 +4,8 @@ import sys
 from aerospike import Client
 from aerospike import predicates as pred
 
-import open_ai_gateway
 from set_proxy import SetProxy
-from open_ai_gateway import recommend
+from open_ai_gateway import OpenAIGateway
 from pprint import pprint
 
 def clean_and_aggregate(accum_list, callback_record):
@@ -20,12 +19,14 @@ def main( ):
         print("Usage: main.py <exemplar-item-id>")
         sys.exit(1)
 
+    exemplar_id = int(sys.argv[1])
+
     print("Connecting to Aerospike server...")
     cluster_addrs = {
         "hosts": [("localhost", 3000)]
     }
     client = Client(cluster_addrs).connect( )
-    print(f"Connected to Aerospike server: = {client.get_nodes( )}")
+    print(f"Connected to Aerospike server: = {client.get_node_names( )}")
 
     proxy = SetProxy(client, "inventory", "catalog")
 
@@ -38,12 +39,12 @@ def main( ):
         .foreach(lambda curr_record: clean_and_aggregate(
             cleaned_results, curr_record))
     )
+
     client.close( )
 
-    print("\nConfiguring OpenAI roles...")
-    print(f"System role = {open_ai_gateway.SYSTEM}")
-
-    response = recommend(int(sys.argv[1]), cleaned_results)
+    gateway = OpenAIGateway( )
+    print(f"OpenAI Gateway System Role = {gateway.get_system_role( )}")
+    response = gateway.recommend(exemplar_id, cleaned_results)
 
     print("\n")
     pprint(response)
